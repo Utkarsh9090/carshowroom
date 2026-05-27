@@ -1,0 +1,61 @@
+/* responsive.css */
+
+@media (max-width: 1024px) {
+  .hero-title {
+    font-size: 3.5rem;
+  }
+  
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .admin-sidebar {
+    width: 240px;
+  }
+  
+  .admin-main {
+    margin-left: 240px;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+  
+  .hero-desc {
+    font-size: 1rem;
+  }
+  
+  .hero-actions {
+    flex-direction: column;
+  }
+  
+  .brands-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .admin-sidebar {
+    transform: translateX(-100%);
+    z-index: 1000;
+    transition: var(--transition-normal);
+  }
+  
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+  
+  .admin-main {
+    margin-left: 0;
+    padding: 20px;
+  }
+  
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+  
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+}

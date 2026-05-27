@@ -1,0 +1,139 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 1.5rem 0;
+  z-index: 1000;
+  transition: all var(--transition-normal);
+  background: transparent;
+}
+
+/* Scrolled state (White background) */
+.navbar.scrolled {
+  background: var(--color-white);
+  padding: 1rem 0;
+  box-shadow: var(--shadow-md);
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Base text color (Dark for scrolled/other pages) */
+.nav-logo {
+  font-size: 1.5rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-black);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color var(--transition-normal);
+}
+
+.nav-logo span {
+  color: var(--color-red);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  transition: all var(--transition-normal);
+}
+
+.nav-link {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-800);
+  transition: color var(--transition-fast);
+  position: relative;
+  text-decoration: none;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--color-red);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-red);
+  transition: width var(--transition-normal);
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+  width: 100%;
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  color: var(--color-black);
+  border: none;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+/* Transparent state (White text for top of Home page) */
+.navbar.transparent .nav-logo {
+  color: var(--color-white);
+}
+
+.navbar.transparent .nav-link {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.navbar.transparent .nav-link:hover, 
+.navbar.transparent .nav-link.active {
+  color: var(--color-white);
+}
+
+.navbar.transparent .mobile-menu-btn {
+  color: var(--color-white);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  .nav-links {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    width: 80%;
+    max-width: 350px;
+    height: 100vh;
+    background: var(--color-white);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+  }
+
+  .nav-links.open {
+    right: 0;
+  }
+
+  /* When mobile menu is open, force text to be dark regardless of transparent state */
+  .navbar.transparent .nav-links.open .nav-link {
+    color: var(--color-gray-800);
+  }
+  
+  .navbar.transparent .nav-links.open .nav-link:hover,
+  .navbar.transparent .nav-links.open .nav-link.active {
+    color: var(--color-red);
+  }
+
+  .nav-link {
+    font-size: 1.25rem;
+  }
+}

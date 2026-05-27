@@ -1,0 +1,136 @@
+/* admin.css */
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+.admin-sidebar {
+  width: 280px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  padding: 30px 20px;
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.admin-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 40px;
+  padding-left: 10px;
+}
+
+.admin-logo span {
+  color: var(--accent-primary);
+}
+
+.admin-nav {
+  list-style: none;
+}
+
+.admin-nav li {
+  margin-bottom: 10px;
+}
+
+.admin-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  border-radius: 8px;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+}
+
+.admin-nav a:hover, .admin-nav a.active {
+  background: rgba(154, 0, 2, 0.1);
+  color: var(--accent-primary);
+}
+
+.admin-main {
+  flex: 1;
+  margin-left: 280px;
+  padding: 40px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+}
+
+.stat-card h3 {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+
+.stat-card .value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.admin-table-container {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th, .admin-table td {
+  padding: 16px 24px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.admin-table th {
+  background: rgba(255,255,255,0.02);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: none;
+}
+
+.action-btns {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-icon {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 6px;
+  border-radius: 4px;
+}
+
+.btn-icon:hover {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
