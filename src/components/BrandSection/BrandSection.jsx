@@ -10,7 +10,7 @@ const BrandSection = () => {
   return (
     <section className="brands-section" ref={ref}>
       <div className="container">
-        <h2 className={`section-title animate-on-scroll fade-in-up ${isVisible ? 'is-visible' : ''}`}>Explore Premium <span>Brands</span></h2>
+        <h2 className={`section-title animate-on-scroll fade-in-up ${isVisible ? 'is-visible' : ''}`}>Explore <span>Brands</span></h2>
         <div className="brands-grid">
           {brands.map((brand, index) => (
             <div 

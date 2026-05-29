@@ -11,7 +11,7 @@ import Login from './pages/Login';
 import AdminDashboard from './pages/AdminDashboard';
 import { Car } from 'lucide-react';
 
-import { subscribeToAuthChanges } from './services/authService';
+// import { subscribeToAuthChanges } removed
 
 const GlobalLoader = () => (
   <div className="global-loader">
@@ -40,29 +40,17 @@ const Layout = ({ children }) => {
 };
 
 // Admin Route Wrapper
-const AdminRoute = ({ children, user }) => {
+const AdminRoute = ({ children, user, isLoading }) => {
+  if (isLoading) return <GlobalLoader />;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== 'admin') return <Navigate to="/" replace />;
   return children;
 };
 
+import { useAuth } from './contexts/AuthContext';
+
 const App = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    // Subscribe to Firebase auth state
-    const unsubscribe = subscribeToAuthChanges((currentUser) => {
-      setUser(currentUser);
-      setIsLoading(false);
-    });
-    
-    return () => unsubscribe();
-  }, []);
-
-  if (isLoading) {
-    return <GlobalLoader />;
-  }
+  const { currentUser: user, loading: isLoading } = useAuth();
 
   return (
     <Router>
@@ -77,7 +65,7 @@ const App = () => {
           <Route 
             path="/admin/*" 
             element={
-              <AdminRoute user={user}>
+              <AdminRoute user={user} isLoading={isLoading}>
                 <AdminDashboard />
               </AdminRoute>
             } 

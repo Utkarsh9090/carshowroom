@@ -22,13 +22,6 @@ export const loginWithGoogle = async () => {
     // If the admin uses their email, make them admin, else user
     const role = user.email === 'test@admin.com' ? 'admin' : 'user';
     
-    let userData = {
-      uid: user.uid,
-      email: user.email,
-      name: user.displayName,
-      role: role
-    };
-    
     if (!userDoc.exists()) {
       // First time sign-up
       const newDocData = {
@@ -39,14 +32,8 @@ export const loginWithGoogle = async () => {
         joined: new Date().toISOString().split('T')[0]
       };
       await setDoc(userDocRef, newDocData);
-      userData = { ...userData, ...newDocData };
-    } else {
-      // Existing user
-      userData = { ...userData, ...userDoc.data() };
     }
-    
-    localStorage.setItem('user', JSON.stringify(userData));
-    return userData;
+    return true;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -55,25 +42,8 @@ export const loginWithGoogle = async () => {
 // Log in
 export const login = async (email, password) => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    
-    // Fetch custom user data (role, etc.) from Firestore
-    let userData = { uid: user.uid, email: user.email, role: user.email === 'test@admin.com' ? 'admin' : 'user' };
-    
-    try {
-      const userDocRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        userData = { ...userData, ...userDoc.data() };
-      }
-    } catch (firestoreError) {
-      console.warn("Firestore could not be reached or document read failed:", firestoreError);
-      // We still allow the login to proceed using the fallback userData
-    }
-    
-    localStorage.setItem('user', JSON.stringify(userData));
-    return userData;
+    await signInWithEmailAndPassword(auth, email, password);
+    return true;
   } catch (error) {
     // Auto-setup admin account if it doesn't exist yet
     if (email === 'test@admin.com' && password === 'testadmin' && error.message.includes('auth/invalid-credential')) {
@@ -111,9 +81,7 @@ export const signup = async (email, password, name) => {
       console.warn("Could not save user data to Firestore. Proceeding anyway:", err);
     }
     
-    const currentUser = { uid: user.uid, ...userData };
-    localStorage.setItem('user', JSON.stringify(currentUser));
-    return currentUser;
+    return true;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -135,31 +103,7 @@ export const getCurrentUser = () => {
   return user ? JSON.parse(user) : null;
 };
 
-// Observer for auth state changes
-export const subscribeToAuthChanges = (callback) => {
-  return onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        let userData = { uid: user.uid, email: user.email, role: 'user' }; // fallback
-        if (userDoc.exists()) {
-          userData = { ...userData, ...userDoc.data() };
-        }
-        
-        localStorage.setItem('user', JSON.stringify(userData));
-        callback(userData);
-      } catch (error) {
-        console.error("Error fetching user data in auth state change:", error);
-        callback({ uid: user.uid, email: user.email, role: 'user' });
-      }
-    } else {
-      localStorage.removeItem('user');
-      callback(null);
-    }
-  });
-};
+
 
 // Admin: Get all users
 export const getUsers = async (searchQuery = '') => {

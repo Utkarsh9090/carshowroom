@@ -5,16 +5,42 @@ import { Edit, Trash2, Plus, X, Upload } from 'lucide-react';
 import { getCars, addCar, updateCar, deleteCar } from '../services/carService';
 import { getUsers, deleteUser } from '../services/authService';
 import { getOrders, updateOrderStatus } from '../services/orderService';
+import { useAuth } from '../contexts/AuthContext';
 const DashboardOverview = () => {
   const [totalCars, setTotalCars] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const { currentUser } = useAuth();
 
   useEffect(() => {
-    const fetchCars = async () => {
+    const fetchData = async () => {
       const cars = await getCars();
       setTotalCars(cars.length);
+
+      const users = await getUsers();
+      setTotalUsers(users.length);
+
+      const orders = await getOrders();
+      setTotalOrders(orders.length);
+
+      const revenue = orders.reduce((sum, order) => sum + (Number(order.price) || 0), 0);
+      setTotalRevenue(revenue);
+
+      setRecentOrders(orders.slice(0, 5));
     };
-    fetchCars();
+    fetchData();
   }, []);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Pending': return '#ffb703';
+      case 'Processing': return '#00b4d8';
+      case 'Delivered': return '#06d6a0';
+      default: return 'var(--text-secondary)';
+    }
+  };
 
   return (
     <div>
@@ -23,12 +49,12 @@ const DashboardOverview = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
           <img src="https://ui-avatars.com/api/?name=Admin+User&background=random" alt="Admin" style={{ width: '40px', height: '40px', borderRadius: '50%' }} />
           <div>
-            <div style={{ fontWeight: '600' }}>Admin User</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>test@admin.com</div>
+            <div style={{ fontWeight: '600' }}>{currentUser?.name || 'Admin User'}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{currentUser?.email || 'admin@example.com'}</div>
           </div>
         </div>
       </div>
-      
+
       <div className="dashboard-stats">
         <div className="stat-card">
           <h3>Total Cars</h3>
@@ -36,45 +62,45 @@ const DashboardOverview = () => {
         </div>
         <div className="stat-card">
           <h3>Users</h3>
-          <div className="value">1,248</div>
+          <div className="value">{totalUsers}</div>
         </div>
         <div className="stat-card">
           <h3>Orders</h3>
-          <div className="value">156</div>
+          <div className="value">{totalOrders}</div>
         </div>
         <div className="stat-card">
           <h3>Revenue</h3>
-          <div className="value">₹ 4.2 Cr</div>
+          <div className="value">₹ {(totalRevenue / 100000).toFixed(2)} L</div>
         </div>
       </div>
-      
-      <h3>Recent Inquiries</h3>
+
+      <h3>Recent Orders</h3>
       <div className="admin-table-container" style={{ marginTop: '20px' }}>
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Subject</th>
-              <th>Date</th>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Vehicle</th>
+              <th>Amount</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>Rahul Sharma</td>
-              <td>rahul@example.com</td>
-              <td>Test Drive - BMW M4</td>
-              <td>Today, 10:30 AM</td>
-              <td><span style={{ color: '#ffb703', fontWeight: '500' }}>Pending</span></td>
-            </tr>
-            <tr>
-              <td>Priya Patel</td>
-              <td>priya@example.com</td>
-              <td>Finance - Mercedes S-Class</td>
-              <td>Yesterday</td>
-              <td><span style={{ color: '#00b4d8', fontWeight: '500' }}>In Progress</span></td>
-            </tr>
+            {recentOrders.map(order => (
+              <tr key={order.id}>
+                <td>{order.id}</td>
+                <td>{order.customerName}</td>
+                <td>{order.carModel}</td>
+                <td>₹ {(order.price / 100000).toFixed(2)} L</td>
+                <td><span style={{ color: getStatusColor(order.status), fontWeight: '500' }}>{order.status}</span></td>
+              </tr>
+            ))}
+            {recentOrders.length === 0 && (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No recent orders.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
@@ -86,9 +112,9 @@ const ManageCars = () => {
   const [cars, setCars] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCar, setEditingCar] = useState(null);
-  
+
   const initialFormState = {
-    brand: '', model: '', price: '', category: 'Luxury', 
+    brand: '', model: '', price: '', category: 'Luxury',
     description: '', year: new Date().getFullYear(),
     mileage: '', fuelType: 'Petrol', transmission: 'Automatic',
     power: '', image: '', images: [], features: []
@@ -170,7 +196,7 @@ const ManageCars = () => {
       price: Number(formData.price),
       year: Number(formData.year)
     };
-    
+
     if (editingCar) {
       await updateCar(editingCar.id, submitData);
     } else {
@@ -186,7 +212,7 @@ const ManageCars = () => {
         <h2>Manage Vehicles</h2>
         <button className="btn-primary" onClick={() => handleOpenModal()}><Plus size={18} /> Add New Vehicle</button>
       </div>
-      
+
       <div className="admin-table-container">
         <table className="admin-table">
           <thead>
@@ -224,13 +250,13 @@ const ManageCars = () => {
       {isModalOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <div className="glass-panel" style={{ width: '90%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '30px', position: 'relative' }}>
-            <button 
+            <button
               onClick={handleCloseModal}
               style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: '#fff', cursor: 'pointer' }}
             ><X size={24} /></button>
-            
+
             <h2 style={{ marginBottom: '20px' }}>{editingCar ? 'Edit Vehicle' : 'Add New Vehicle'}</h2>
-            
+
             <form onSubmit={handleSubmit}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                 <div>
@@ -287,7 +313,7 @@ const ManageCars = () => {
                   <input type="text" value={formData.features.join(', ')} onChange={handleFeaturesChange} className="input-field" placeholder="Sunroof, 360 Camera, Airbags" />
                 </div>
               </div>
-              
+
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Description</label>
                 <textarea name="description" value={formData.description} onChange={handleChange} className="input-field" rows="3" required></textarea>
@@ -342,16 +368,16 @@ const ManageUsers = () => {
     <div>
       <div className="admin-header">
         <h2>Manage Users</h2>
-        <input 
-          type="text" 
-          placeholder="Search users by name or email..." 
+        <input
+          type="text"
+          placeholder="Search users by name or email..."
           className="input-field"
           style={{ width: '300px' }}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
-      
+
       <div className="admin-table-container">
         <table className="admin-table">
           <thead>
@@ -371,9 +397,9 @@ const ManageUsers = () => {
                 <td>{user.email}</td>
                 <td>{user.phone || 'N/A'}</td>
                 <td>
-                  <span style={{ 
-                    padding: '4px 8px', 
-                    borderRadius: '4px', 
+                  <span style={{
+                    padding: '4px 8px',
+                    borderRadius: '4px',
                     fontSize: '0.8rem',
                     fontWeight: '600',
                     background: user.role === 'admin' ? 'rgba(154, 0, 2, 0.1)' : 'rgba(0, 180, 216, 0.1)',
@@ -424,7 +450,7 @@ const ManageOrders = () => {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'Pending': return '#ffb703';
       case 'Processing': return '#00b4d8';
       case 'Delivered': return '#06d6a0';
@@ -437,7 +463,7 @@ const ManageOrders = () => {
       <div className="admin-header">
         <h2>Manage Orders</h2>
       </div>
-      
+
       <div className="admin-table-container">
         <table className="admin-table">
           <thead>
@@ -459,8 +485,8 @@ const ManageOrders = () => {
                 <td>₹ {(order.price / 100000).toFixed(2)} L</td>
                 <td>{order.date}</td>
                 <td>
-                  <select 
-                    value={order.status} 
+                  <select
+                    value={order.status}
                     onChange={(e) => handleStatusChange(order.id, e.target.value)}
                     style={{
                       padding: '6px 12px',
@@ -494,19 +520,21 @@ const ManageOrders = () => {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { currentUser, loading } = useAuth();
 
   useEffect(() => {
-    // Basic auth check
-    const userStr = localStorage.getItem('user');
-    if (!userStr) {
-      navigate('/login');
-      return;
+    if (!loading) {
+      if (!currentUser) {
+        navigate('/login');
+      } else if (currentUser.role !== 'admin') {
+        navigate('/');
+      }
     }
-    const user = JSON.parse(userStr);
-    if (user.role !== 'admin') {
-      navigate('/');
-    }
-  }, [navigate]);
+  }, [currentUser, loading, navigate]);
+
+  if (loading || !currentUser || currentUser.role !== 'admin') {
+    return null; // The global loader or redirect handles this
+  }
 
   return (
     <div className="admin-layout">

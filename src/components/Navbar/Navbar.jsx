@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Car, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Car, Menu, X, LogOut, User, ShieldAlert } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { logout } from '../../services/authService';
 import './Navbar.css';
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +31,11 @@ const Navbar = () => {
   const isHome = location.pathname === '/';
   const isTransparent = isHome && !scrolled;
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/');
+  };
+
   return (
     <nav className={`navbar ${isTransparent ? 'transparent' : 'scrolled'}`}>
       <div className="container nav-container">
@@ -40,9 +49,27 @@ const Navbar = () => {
           <Link to="/cars" className={`nav-link ${isActive('/cars')}`}>Cars</Link>
           <Link to="/compare" className={`nav-link ${isActive('/compare')}`}>Compare</Link>
           <Link to="/contact" className={`nav-link ${isActive('/contact')}`}>Contact</Link>
-          <Link to="/login" className={isTransparent && !mobileMenuOpen ? "btn btn-primary" : "btn btn-outline"}>
-            Login
-          </Link>
+          
+          {currentUser ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              {currentUser.role === 'admin' && (
+                <Link to="/admin" className="nav-link" style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'var(--accent-primary)' }}>
+                  <ShieldAlert size={16} /> Admin
+                </Link>
+              )}
+              <button 
+                onClick={handleLogout} 
+                className={isTransparent && !mobileMenuOpen ? "btn btn-outline" : "btn btn-outline"}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px' }}
+              >
+                <LogOut size={16} /> Logout
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className={isTransparent && !mobileMenuOpen ? "btn btn-primary" : "btn btn-outline"}>
+              Login
+            </Link>
+          )}
         </div>
 
         <button 

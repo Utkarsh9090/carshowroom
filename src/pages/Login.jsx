@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginWithGoogle, login, signup, logout } from '../services/authService';
 import { Car, Eye, EyeOff, ShieldAlert, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 const Login = () => {
   const [portalMode, setPortalMode] = useState('user'); // 'user' or 'admin'
@@ -17,6 +18,22 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+
+  useEffect(() => {
+    if (currentUser) {
+      if (portalMode === 'admin' && currentUser.role !== 'admin') {
+        logout();
+        setError('Unauthorized: This account is not an administrator.');
+        setLoading(false);
+      } else if (portalMode === 'admin' && currentUser.role === 'admin') {
+        navigate('/admin');
+      } else {
+        if (currentUser.role === 'admin') navigate('/admin');
+        else navigate('/');
+      }
+    }
+  }, [currentUser, navigate, portalMode]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,22 +44,10 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      const user = await loginWithGoogle();
-      
-      if (portalMode === 'admin') {
-        if (user.role !== 'admin') {
-          await logout();
-          throw new Error('Unauthorized: This account is not an administrator.');
-        }
-        navigate('/admin');
-      } else {
-        if (user.role === 'admin') navigate('/admin');
-        else navigate('/');
-      }
+      await loginWithGoogle();
     } catch (err) {
       console.error("Google Auth Error:", err);
       setError(`${err.message || 'Authentication failed'}`);
-    } finally {
       setLoading(false);
     }
   };
@@ -68,27 +73,17 @@ const Login = () => {
     setError('');
     
     try {
-      let user;
       if (portalMode === 'admin') {
-        // Must be the admin email to even attempt
         if (formData.email !== 'test@admin.com') {
           throw new Error('Unauthorized: Incorrect admin email.');
         }
-        user = await login(formData.email, formData.password);
-        if (user.role !== 'admin') {
-          await logout();
-          throw new Error('Unauthorized: This account is not an administrator.');
-        }
-        navigate('/admin');
+        await login(formData.email, formData.password);
       } else {
         if (isLoginView) {
-          user = await login(formData.email, formData.password);
+          await login(formData.email, formData.password);
         } else {
-          user = await signup(formData.email, formData.password, formData.name);
+          await signup(formData.email, formData.password, formData.name);
         }
-        
-        if (user.role === 'admin') navigate('/admin');
-        else navigate('/');
       }
     } catch (err) {
       console.error("Authentication Full Error Object:", err);
@@ -99,7 +94,6 @@ const Login = () => {
       } else {
         setError(`${err.message || 'Authentication failed'}`);
       }
-    } finally {
       setLoading(false);
     }
   };
